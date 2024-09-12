@@ -1,0 +1,164 @@
+import React, { useEffect, useState } from 'react'
+import Card from './Card'
+import Header from './Header'
+import Footer from './Footer'
+import Sidebar from './Sidebar'
+import Pagetitle from './Pagetitle'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from './db'
+
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+
+import { useImmer } from "use-immer";
+
+
+
+
+
+
+
+let Home = () => {
+
+
+
+    ChartJS.register(
+        CategoryScale,
+        LinearScale,
+        PointElement,
+        LineElement,
+        Title,
+        Tooltip,
+        Legend
+    );
+
+    const options = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Chart.js Line Chart',
+            },
+        },
+    };
+
+    const labels = ['', '', '', '', '', '', ''];
+
+    const [data, updateData] = useImmer({
+        labels,
+        datasets: [
+            {
+                label: 'Expense',
+                data: [],
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            },
+            {
+                label: 'Income',
+                data: [],
+                borderColor: 'rgb(53, 162, 235)',
+                backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            },
+        ],
+    });
+
+
+    let [totalexpense, setTotalexpense] = useState(0)
+    let [totalincome, setTotalincome] = useState(0)
+
+
+    let [incomepoints, setIncomepoints] = useState([])
+    let [expensepoints, setExpensepoints] = useState([])
+
+
+
+    useEffect(() => {
+        getData()
+    }, [])
+
+    let getData = async () => {
+        await getExpenses()
+        await getIncomes()
+
+
+        updateData(draft => {
+            draft.datasets[0].data = expensepoints
+            draft.datasets[1].data = incomepoints
+        });
+
+        // setData([...data, data.datasets[1].data = incomepoints])
+    }
+    let getExpenses = async () => {
+        let collectionref = collection(db, "expense")
+        let snapShot = await getDocs(collectionref)
+        snapShot.docs.forEach((doc, i) => {
+
+
+            expensepoints.push(Number( doc.data().amt))
+            setTotalexpense(totalexpense = totalexpense + Number(doc.data().amt))
+        })
+
+
+    }
+
+    let getIncomes = async () => {
+        let collectionref = collection(db, "income")
+        let snapShot = await getDocs(collectionref)
+        snapShot.docs.forEach((doc) => {
+
+
+            // setIncomepoints((incomepoints) => [...incomepoints,Number( doc.data().amt)])
+
+            incomepoints.push(Number( doc.data().amt))
+            setTotalincome(totalincome = totalincome + Number(doc.data().amt))
+        })
+    }
+    return (
+        <div id="main-wrapper" data-layout="vertical" data-navbarbg="skin5" data-sidebartype="full" data-sidebar-position="absolute" data-header-position="absolute" data-boxed-layout="full">
+            <Header />
+            <Sidebar />
+            <div className="page-wrapper">
+                <Pagetitle />
+                <div className="container-fluid">
+                    <div className="row justify-content-center">
+                        <Card title="Total Expense" text={totalexpense} />
+                        <Card title="Total Income" text={totalincome} />
+                        <Card title="Total Savings" text="2000" />
+                    </div>
+
+
+                    <div className="row">
+                        <div className="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+                            <div className="white-box">
+                                <h3 className="box-title">Products Yearly Sales</h3>
+                                <div className="d-md-flex">
+                                    <ul className="list-inline d-flex ms-auto">
+                                        <li className="ps-3">
+                                            <h5><i className="fa fa-circle me-1 text-info" />Mac</h5>
+                                        </li>
+                                        <li className="ps-3">
+                                            <h5><i className="fa fa-circle me-1 text-inverse" />Windows</h5>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div style={{ height: 405 }}>
+                                    <Line redraw={true} options={options} data={data && data} />;
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                   
+                </div>
+            </div>
+
+            <Footer />
+        </div>
+    )
+}
+
+export default Home

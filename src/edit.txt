@@ -1,0 +1,109 @@
+import React, { useEffect, useState } from 'react'
+import Sidebar from './Sidebar';
+import Footer from './Footer';
+import Header from './Header';
+import Pagetitle from './Pagetitle';
+import { addDoc, collection, updateDoc } from 'firebase/firestore';
+import { db } from './db';
+import { useParams } from 'react-router-dom';
+import { doc, getDoc } from "firebase/firestore";
+import { async } from '@firebase/util';
+
+
+ const EditExpense = () => {
+    let [id,setId] = useState("")
+    let [amt,setAmt] = useState("")
+    let [src,setSrc] = useState("")
+    let [dt,setDt] = useState("")
+
+    let params = useParams()
+    console.log(params.docid)
+
+    let updateExpense = async ()=>{
+    
+        const docRef = doc(db, "expense", params.docid);
+        await updateDoc(docRef,{"id":id,"amt":amt,"src":src,"dt":dt})
+        alert("Expense Updated")
+
+    }
+
+    useEffect(()=>{
+        getSingleExpense()
+    },[])
+
+
+    let getSingleExpense = async()=>{
+        const docRef = doc(db, "expense", params.docid);
+        const docSnap = await getDoc(docRef);
+
+        console.log(docSnap.data())
+        setId(docSnap.data().id)
+        setAmt(docSnap.data().amt)
+        setSrc(docSnap.data().src)
+        setDt(docSnap.data().dt)
+    }
+    
+
+
+    return (
+        <div id="main-wrapper" data-layout="vertical" data-navbarbg="skin5" data-sidebartype="full" data-sidebar-position="absolute" data-header-position="absolute" data-boxed-layout="full">
+            <Header />
+            <Sidebar />
+            
+            <div className="page-wrapper">
+                <Pagetitle />
+                <div className="container-fluid">
+                    <div className="row">
+                        <div className="col-lg-8 col-xlg-12 col-md-12">
+                            <div className="card">
+                                <div className="card-body">
+                                    <form className="form-horizontal form-material">
+                                        <div className="form-group mb-4">
+                                            <label htmlFor="example-email" className="col-md-12 p-0">Expense ID</label>
+                                            <div className="col-md-12 border-bottom p-0">
+                                                <input onChange={(e)=>setId(e.target.value)
+                                                } type="text" placeholder="1" className="form-control p-0 border-0" name="example-email" id="example-email" defaultValue={id} />
+                                            </div>
+                                        </div>
+                                        <div className="form-group mb-4">
+                                            <label className="col-md-12 p-0">Amount</label>
+                                            <div className="col-md-12 border-bottom p-0">
+                                                <input onChange={(e)=>setAmt(e.target.value)} type="text" placeholder="300" className="form-control p-0 border-0" defaultValue={amt}/>
+                                            </div>
+                                        </div>
+                                        <div className="form-group mb-4">
+                                            <label className="col-md-12 p-0">Source</label>
+                                            <div className="col-md-12 border-bottom p-0">
+                                                <input onChange={(e)=>setSrc(e.target.value)} type="text" placeholder="Purchase Fruits" className="form-control p-0 border-0" defaultValue={src}/>
+                                            </div>
+                                        </div>
+                                        <div className="form-group mb-4">
+                                            <label className="col-md-12 p-0">Date</label>
+                                            <div className="col-md-12 border-bottom p-0">
+                                                {/* <input type="date" onChange={(e)=>setDt(e.target.value)}  className="form-control p-0 border-0" /> */}
+                                                <input onChange={(e)=>setDt(e.target.value)} type="text" placeholder="dd/mm/yyyy" className="form-control p-0 border-0" defaultValue={dt} />
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group mb-4">
+                                            <div className="col-sm-12">
+                                                <button type='button' className="btn btn-success" onClick={updateExpense}>Update Expense</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <Footer /> 
+
+            
+        </div>
+    )
+}
+export default EditExpense

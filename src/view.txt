@@ -1,0 +1,89 @@
+import React, { useEffect, useState } from 'react'
+import Footer from './Footer'
+import Sidebar from './Sidebar'
+import Header from './Header'
+import Card from './Card'
+import Pagetitle from './Pagetitle'
+import { collection,deleteDoc,doc,getDocs } from 'firebase/firestore'
+import { db } from './db'
+import { useNavigate } from 'react-router-dom'
+
+
+let ViewExpense = () => {
+    let navigate = useNavigate()
+    let [data,setData] = useState([])
+    useEffect(()=>{
+     getData()
+    },[])
+
+    let deleteExpense = async (id)=>{
+        let docRef = doc(db,"expense",id)
+        await deleteDoc(docRef)
+        alert("Document Deleted")
+    }
+
+
+    let getData = async ()=>{
+        let collectionref = collection(db,"expense")
+        let snapShot = await getDocs(collectionref)
+        console.log(snapShot.docs)
+        snapShot.docs.forEach((doc)=>{
+            
+            // data.push(doc.data())
+            setData((data)=>[...data,{...doc.data(),docid:doc.id}])
+        })
+    }
+  return (
+    <div id="main-wrapper" data-layout="vertical" data-navbarbg="skin5" data-sidebartype="full" data-sidebar-position="absolute" data-header-position="absolute" data-boxed-layout="full">
+    <Header />
+    <Sidebar />
+
+    <div className="page-wrapper">
+        <Pagetitle />
+        <div className="container-fluid">
+            <div className="row">
+                <div className="col-md-12 col-lg-12 col-sm-12">
+                    <div className="white-box">
+                        <div className="d-md-flex mb-3">
+                            <h3 className="box-title mb-0">View Expense</h3>
+                            <div className="col-md-3 col-sm-4 col-xs-6 ms-auto">
+                               
+                            </div>
+                        </div>
+                        <div className="table-responsive">
+                            <table className="table no-wrap">
+                                <thead>
+                                    <tr>
+                                        <th className="border-top-0">Expense ID</th>
+                                        <th className="border-top-0">Amount</th>
+                                        <th className="border-top-0">Source</th>
+                                        <th className="border-top-0">Date</th>
+                                        <th className="border-top-0">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data && data.map((expense)=> (
+                                        <tr>
+                                         <td>{expense.id}</td>
+                                         <td className="txt-oflo">{expense.amt}</td>
+                                         <td>{expense.src}</td>
+                                         <td className="txt-oflo">{expense.dt}</td>
+                                         <td><span className="text-success"><i  onClick={()=>{navigate("/editexpense/"+expense.docid)}} class="fa-solid fa-pen-to-square"></i></span> | <span className="text-danger"><i onClick={()=>deleteExpense()} class="fa-solid fa-trash"></i></span></td>
+                                        
+                                     </tr>
+                                    ) )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <Footer />
+</div>
+  )
+}
+
+export default ViewExpense
